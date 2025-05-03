@@ -12,6 +12,7 @@ It's designed for scenarios where you need to store structured data persistently
 ## Table of Contents
 
 * [Features](#features)
+* [When to Use PDS](#when-to-use-pds)
 * [Installation](#installation)
 * [Basic Usage](#basic-usage)
     * [Creating and Saving](#creating-and-saving)
@@ -23,6 +24,7 @@ It's designed for scenarios where you need to store structured data persistently
     * [`zstd_dict`](#zstd_dict)
     * [Choosing a Mode](#choosing-a-mode)
 * [API Reference](#api-reference)
+* [Comparison to Alternatives](#comparison-to-alternatives)
 * [File Format (`.pds`)](#file-format-pds)
 * [Considerations and Limitations](#considerations-and-limitations)
 * [Contributing](#contributing)
@@ -41,6 +43,19 @@ It's designed for scenarios where you need to store structured data persistently
 * **Data Modification:** Add, update (by adding with the same key), and remove keys. Changes are initially stored in temp files and consolidated during `save`.
 * **Context Manager Support:** Use `with PDS(...) as store:` for automatic resource cleanup (`dispose`).
 * **Temporary File Management:** Handles temporary storage for added/modified data transparently before saving.
+
+## When to Use PDS
+
+PDS is particularly well-suited for scenarios where you need to:
+
+* **Store numerous structured records:** Manage collections of data like JSON objects, dictionaries, or logs efficiently.
+* **Avoid managing many small files:** Consolidate potentially thousands or millions of records into a single, portable file, improving I/O performance and simplifying file handling.
+* **Achieve high compression ratios:** Especially useful when records share common structures or repeating string content (like JSON keys or log message formats), leveraging Zstandard dictionary compression (`zstd_dict`).
+* **Retrieve data primarily by key:** Access specific records quickly using their known hierarchical string key path, without needing to scan the entire dataset.
+* **Keep things simple:** Use a straightforward key-value storage approach without the setup, schema requirements, or query language complexity of full SQL or NoSQL databases.
+* **Prioritize JSON-like data:** Store nested lists, dictionaries, strings, numbers, etc., naturally.
+
+It's a good fit if a full database like SQLite seems like overkill, but storing individual files is too inefficient or cumbersome.
 
 ## Installation
 
@@ -265,6 +280,42 @@ The `compression_mode` parameter in the `PDS()` constructor determines the **int
     * Returns a deep copy of the keys index structure (containing internal value IDs, not the actual data). Useful for exploring the hierarchy.
 * `dispose()`:
     * Closes the file handle (if open) and cleans up temporary directories. Automatically called when exiting a `PDS` context (`with` statement).
+
+## Comparison to Alternatives
+
+PDS occupies a specific niche. Here's how it compares to other common data storage approaches:
+
+### vs. File System / Archives (e.g., storing individual JSON files, `.tar.gz`, `.zip`)
+
+* **PDS Advantages:** Significantly better I/O performance (single file handle vs. many), much better compression potential across records (especially with `zstd_dict`), efficient random access by key (impossible in simple archives without full decompression), easier management of a single artifact.
+* **File System/Archive Advantages:** Simplicity for basic cases, uses universally standard tools.
+
+### vs. SQL Databases (e.g., SQLite, DuckDB)
+
+* **PDS Advantages:** Simpler API for key-value operations (no SQL required), potentially better compression specifically for repetitive JSON structures via `zstd_dict`, lighter dependency footprint (Python + zstandard wheels vs. C/C++ based DBs).
+* **SQL DB Advantages:** PDS has no querying capabilities and handling relational data is cumbersome.
+
+### vs. Document Databases (e.g., TinyDB)
+
+* **PDS Advantages:** Significantly better space efficiency and likely performance due to binary storage and Zstandard compression (vs. TinyDB's plain JSON text storage), potentially scales better for very large datasets.
+* **TinyDB Advantages:** Pure Python, simple querying capabilities beyond exact key match, very easy to get started with.
+
+### vs. Python Standard Library (e.g., Pickle, Shelve)
+
+* **PDS Advantages:** More portable data format (JSON/zstd vs. Python-specific Pickle), avoids Pickle's security risks with untrusted data, generally more robust than `shelve`, integrated advanced compression. Data is readable using other programming languages as well, as long as they can decompress zstandard-compressed data.
+* **Pickle/Shelve Advantages:** Can store arbitrary Python objects (not just JSON-serializable ones), part of the standard library.
+
+### vs. Hierarchical/Array Formats (e.g., HDF5, Zarr)
+
+* **PDS Advantages:** Simpler API focused specifically on hierarchical keys and JSON-like document values, potentially less storage overhead for this data type.
+* **HDF5/Zarr Advantages:** Optimized for large, N-dimensional numerical arrays, support complex chunking/sharding strategies, rich ecosystem for scientific data. More feature-rich but potentially overkill for simple document storage.
+
+### vs. Embedded Key-Value Stores (e.g., RocksDB/LMDB bindings)
+
+* **PDS Advantages:** Higher-level API (handles JSON serialization, hierarchical keys, compression automatically), easier to use for the target data model.
+* **KV Store Advantages:** Significantly higher raw put/get performance, designed for low-level speed, may offer transactional guarantees. Usually require manual data serialization and have C/C++ dependencies.
+
+Choose PDS when you need an efficient, single-file store for many JSON-like documents addressable by hierarchical keys, where compression is important, and complex querying is not a primary requirement.
 
 ## File Format (`.pds`)
 
