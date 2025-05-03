@@ -99,7 +99,7 @@ class PDS:
                 else:  # Not creating and node is missing or not a dict
                     if node is None:
                         raise KeyError(
-                            f"Key path not found: {' -> '.join(keys_list[:i+1])}"
+                            f"Key path not found: {' -> '.join(keys_list[: i + 1])}"
                         )
                     else:
                         raise TypeError(
@@ -656,7 +656,7 @@ class PDS:
         value_ids = list(self.value_locations.keys())
         random.shuffle(value_ids)
         print(
-            f"Starting dictionary training. Target sample size: {self._dict_sample_size / (1024*1024):.2f} MB"
+            f"Starting dictionary training. Target sample size: {self._dict_sample_size / (1024 * 1024):.2f} MB"
         )
         processed_count = 0
         skipped_count = 0
@@ -664,7 +664,7 @@ class PDS:
         for value_id in value_ids:
             if current_sample_size >= self._dict_sample_size:
                 print(
-                    f"Reached dictionary sample size limit ({current_sample_size / (1024*1024):.2f} MB) after {processed_count} values."
+                    f"Reached dictionary sample size limit ({current_sample_size / (1024 * 1024):.2f} MB) after {processed_count} values."
                 )
                 break
             try:
@@ -714,7 +714,7 @@ class PDS:
 
         try:
             print(
-                f"Training dictionary with {len(sample_data)} samples, size {current_sample_size / (1024*1024):.2f} MB. Target dict size: {self._dict_target_size} bytes."
+                f"Training dictionary with {len(sample_data)} samples, size {current_sample_size / (1024 * 1024):.2f} MB. Target dict size: {self._dict_target_size} bytes."
             )
             trained_dictionary = zstd.train_dictionary(
                 dict_size=self._dict_target_size, samples=sample_data, level=5
@@ -1043,7 +1043,10 @@ class PDS:
             if self._opened_file_handle and not self._opened_file_handle.closed:
                 try:
                     self._opened_file_handle.close()
-                except:
+                except OSError as close_e:
+                    print(
+                        f"Warning: Error closing file handle during exception cleanup: {close_e}"
+                    )
                     pass
             self._opened_file_handle = None
             # Keep _active_compression_mode etc. as they were *before* the failed save attempt? Or reset? Reset is safer.
