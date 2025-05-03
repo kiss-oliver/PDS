@@ -10,8 +10,8 @@ readme = "README.md"
 requires-python = ">=3.7"
 license = { file = "LICENSE" }
 authors = [
-    { name = "Oliver Kiss", email = "python-pds@proton.me" },
-    { name = "Markus Mobius"}
+    { name = "Oliver Kiss" },
+    { name = "Markus Mobius" }
 ]
 
 dependencies = [
