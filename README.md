@@ -1,5 +1,10 @@
 # PDS - Portable Data Store
 
+[![PyPI version](https://badge.fury.io/py/python-pds.svg)](https://badge.fury.io/py/python-pds)
+[![Python versions](https://img.shields.io/pypi/pyversions/python-pds.svg)](https://pypi.org/project/python-pds/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![CI Status](https://github.com/kiss-oliver/PDS/actions/workflows/lint.yml/badge.svg)](https://github.com/kiss-oliver/PDS/actions/workflows/lint.yml)
+
 **PDS (Portable Data Store)** is a Python class for efficiently storing and retrieving large amounts of key-value data, where keys are hierarchical strings and values are arbitrary JSON-serializable Python objects. It leverages Zstandard (zstd) compression, including optional dictionary-based compression, to minimize storage space, particularly for datasets with repetitive structures or content (like collections of JSON objects, log entries, etc.).
 
 It's designed for scenarios where you need to store structured data persistently in a single object but want faster random access and potentially better compression than simply storing individual JSON files or using less specialized formats.
@@ -7,7 +12,6 @@ It's designed for scenarios where you need to store structured data persistently
 ## Table of Contents
 
 * [Features](#features)
-* [Dependencies](#dependencies)
 * [Installation](#installation)
 * [Basic Usage](#basic-usage)
     * [Creating and Saving](#creating-and-saving)
@@ -21,6 +25,7 @@ It's designed for scenarios where you need to store structured data persistently
 * [API Reference](#api-reference)
 * [File Format (`.pds`)](#file-format-pds)
 * [Considerations and Limitations](#considerations-and-limitations)
+* [Contributing](#contributing)
 * [License](#license)
 
 ## Features
@@ -37,28 +42,32 @@ It's designed for scenarios where you need to store structured data persistently
 * **Context Manager Support:** Use `with PDS(...) as store:` for automatic resource cleanup (`dispose`).
 * **Temporary File Management:** Handles temporary storage for added/modified data transparently before saving.
 
-## Dependencies
-
-* **zstandard:** The Python bindings for Zstandard.
-
 ## Installation
 
-1.  **Install the `zstandard` library:**
-    ```bash
-    pip install zstandard
-    ```
-2.  **Include `PDS.py`:** Place the `PDS.py` file containing the class definition in your Python project directory or ensure it's accessible via your Python path.
-3.  **Import:**
-    ```python
-    from PDS import PDS
-    ```
+You can install `python-pds` directly from PyPI using pip:
+
+```bash
+pip install python-pds
+```
+
+This will automatically install the required zstandard dependency as well.
+
+**Note**: The package is installed as python-pds, but you import it in your Python code as pds:
+
+```python
+from pds import PDS
+
+# Now you can use the PDS class
+store = PDS()
+```
 
 ## Basic Usage
 
 ### Creating and Saving
 
 ```python
-from PDS import PDS
+# Make sure to install first: pip install python-pds
+from pds import PDS # Import the class from the 'pds' package
 import os
 
 filename = "my_data_store.pds"
@@ -109,7 +118,7 @@ except Exception as e:
 ### Opening and Reading
 
 ```python
-from PDS import PDS
+from pds import PDS
 import json
 
 filename = "my_data_store.pds"
@@ -156,7 +165,7 @@ except Exception as e:
 You can open an existing store, add/remove keys, and then save (usually to a new file, but you can also overwrite the existing one).
 
 ```python
-from PDS import PDS
+from pds import PDS
 import os
 
 filename_v1 = "my_data_store.pds"
@@ -298,6 +307,9 @@ The PDS file format is structured sequentially as follows:
 * **Atomicity:** The `save` operation is **not atomic**. If the process is interrupted during `save`, the output file may be incomplete or corrupted. For critical applications, consider saving to a temporary file and then atomically renaming it upon successful completion (this logic is not currently implemented within the `PDS` class).
 * **Error Handling:** Uses standard Python exceptions. File corruption, resource exhaustion (memory/disk), or invalid data can lead to errors (`IOError`, `MemoryError`, `zstd.ZstdError`, `json.JSONDecodeError`, `ValueError`, etc.).
 * **Large Individual Values:** While the format supports large values (`UINT8` for length), extremely large individual values (approaching or exceeding available RAM) could cause `MemoryError` during reading, saving, or dictionary sampling.
+
+## Contributing
+Contributions are welcome! Please see the Contributing Guidelines for details on how to set up your development environment, report bugs, suggest features, and submit pull requests.
 
 ## License
 
