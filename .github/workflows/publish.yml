@@ -52,7 +52,7 @@ jobs:
 
     environment:
       name: pypi
-      url: https://pypi.org/p/pds
+      url: https://pypi.org/p/python-pds
 
     # Grant permission to request OIDC token
     permissions:
