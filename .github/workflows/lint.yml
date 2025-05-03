@@ -1,0 +1,47 @@
+name: Lint and Format Check
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  lint_and_format:
+    name: Ruff Lint & Format Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12.9
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12.9'
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v1
+
+      - name: Get uv cache directory
+        id: uv-cache-dir
+        run: echo "dir=$(uv cache dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache uv global directory
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.uv-cache-dir.outputs.dir }}
+          # Key invalidates cache if uv.lock changes
+          key: ${{ runner.os }}-uv-${{ hashFiles('**/uv.lock') }}
+          # Fallback cache key
+          restore-keys: |
+            ${{ runner.os }}-uv-
+
+      - name: Install dependencies including dev using uv
+        run: uv sync --dev --frozen
+
+      - name: Check formatting with Ruff
+        run: uv run ruff format --check src
+
+      - name: Lint with Ruff
+        run: uv run ruff check src
