@@ -174,7 +174,7 @@ wheels = [
 
 [[package]]
 name = "python-pds"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "." }
 dependencies = [
     { name = "zstandard", version = "0.21.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.8'" },
